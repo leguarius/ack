@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ack-doc"
+version = "1.0.0"
+description = "ACK-DOC : validation de PDF balisés et génération d'un document de synthèse Markdown/PDF"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pymupdf",
+    "markdown-it-py",
+    "weasyprint",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+ack-doc = "ack_doc.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+ack_doc = [
+    "resources/pdf.css",
+    "resources/fonts.conf",
+    "resources/fonts/*",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

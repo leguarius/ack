@@ -196,7 +196,28 @@ Chaîne retenue : **Markdown → markdown-it-py → HTML + CSS → WeasyPrint �
 - **TEC-045** — Les sauts de ligne internes des résumés DOIVENT être restitués dans le PDF indépendamment du repli ordinaire des lignes Markdown.
 - **TEC-087** — Les polices utilisées pour le rendu DOIVENT être livrées avec l'application, licenciées pour cet usage et explicitement sélectionnées par la feuille CSS. Le rendu NE DOIT PAS dépendre d'une substitution de police système.
 
-Feuille CSS minimale :
+- **TEC-097** — La feuille de style de référence est `src/ack_doc/resources/pdf.css`. Elle NE DOIT contenir ni `@import`, ni URL réseau, ni nom de police système.
+- **TEC-098** — Le HTML de chaque document inséré DOIT avoir la structure suivante, générée par `composer.py` / `renderer.py` (et non par `markdown-it-py`) :
+
+```html
+<section class="ack-entry">
+  <div class="ack-summary">résumé échappé, sauts de ligne conservés</div>
+  <div class="ack-link-bubble"><p><a href="chemin/relatif.pdf">…</a></p></div>
+</section>
+```
+
+  Cette structure est provisoire : elle sera alignée sur `page_setting_template.html` (modèle de mise en page, non finalisé) quand celui-ci sera terminé. Les classes `ack-entry`, `ack-summary` et `ack-link-bubble` sont le contrat entre le HTML et `pdf.css`.
+- **TEC-099** — Les dimensions dans `pdf.css` DOIVENT être exprimées en unités d'impression (`pt`, `cm`), non en `px`.
+- **TEC-100** — Chaque page DOIT porter en bas une numérotation « page / total » produite par `@page` (`counter(page)`, `counter(pages)`).
+- **TEC-101** — Les `@font-face` DOIVENT déclarer les familles `ACK Sans` (Noto Sans : Regular, Italic, Bold, BoldItalic) et `ACK Mono` (Noto Sans Mono : Regular, Bold), à partir de fichiers **statiques** (TTF) situés dans `src/ack_doc/resources/fonts/`, chemins relatifs à `pdf.css`. Les polices variables sont exclues.
+- **TEC-102** — La licence SIL OFL 1.1 des polices (`OFL.txt`) DOIT être livrée avec elles ; les empreintes SHA-256 des fichiers de polices DOIVENT être consignées dans le dépôt et vérifiées par un test.
+- **TEC-103** — `renderer.py` DOIT appeler WeasyPrint avec `base_url` pointant vers le dossier `resources/` et un `FontConfiguration`. Le `url_fetcher` DOIT refuser toute URL qui n'est pas un fichier situé sous `resources/` (cohérent avec TEC-073 et TEC-086).
+- **TEC-104** — Un fichier `src/ack_doc/resources/fonts.conf` DOIT limiter fontconfig au seul dossier `resources/fonts/`. `renderer.py` DOIT définir `FONTCONFIG_FILE` vers ce fichier avant toute initialisation de WeasyPrint, en générant si nécessaire un fichier temporaire dont le chemin du dossier de polices est absolu. Le cache fontconfig NE DOIT PAS être écrit dans le dépôt.
+- **TEC-105** — Aucune police de repli système n'est autorisée. Les caractères absents de Noto Sans sont hors périmètre garanti ; leur affichage fait l'objet d'un test de non-régression documenté.
+- **TEC-106** — Les fichiers `resources/pdf.css`, `resources/fonts.conf` et `resources/fonts/*` DOIVENT être inclus dans les données du paquet (`pyproject.toml`, cf. TEC-065).
+- **TEC-107** — Un test DOIT vérifier, sur un PDF généré, que toutes les polices intégrées sont `NotoSans*` ou `NotoSansMono*` (par exemple `page.get_fonts()` de PyMuPDF), qu'elles sont embarquées, et que le numéro de page est présent.
+
+Extrait de la feuille de référence (voir `pdf.css` pour la version complète) :
 
 ```css
 @page {
@@ -205,13 +226,12 @@ Feuille CSS minimale :
 }
 
 body {
-    font-family: sans-serif;
+    font-family: "ACK Sans";
     font-size: 11pt;
     line-height: 1.45;
 }
 
 .ack-summary {
-    white-space: pre-wrap;
     overflow-wrap: anywhere;
 }
 ```
@@ -285,6 +305,17 @@ Le journal est produit par `journal.py` avec le module standard `json`.
 | `DUPLICATE_TEMPLATE_ANACK` | Clé ANACK répétée dans le template |
 | `NO_PDF_FOUND` | Aucun PDF découvert dans le répertoire d'entrée |
 | `EXSUM_CROSSES_PAGE` | Résumé EXSUM réparti sur plusieurs pages |
+| `INPUT_DIR_ERROR` | Répertoire d'entrée inexistant ou inaccessible (code `2`) |
+| `TEMPLATE_READ_ERROR` | Template inexistant ou illisible (code `2`) |
+| `TEMPLATE_ENCODING_ERROR` | Template non encodé en UTF-8 valide (code `2`) |
+| `OUTPUT_DIR_ERROR` | Répertoire de sortie inexistant ou inaccessible (code `2`) |
+| `JOURNAL_DIR_ERROR` | Répertoire du journal inexistant ou inaccessible (code `2`) |
+| `PATH_COLLISION` | Collision destructrice entre chemins de fichiers (code `2`) |
+| `IO_ERROR` | Erreur d'accès ou d'écriture de fichier (code `2`) |
+| `RENDER_ERROR` | Échec de la génération du PDF (code `2`) |
+| `INTERNAL_ERROR` | Erreur interne (code `2`) |
+
+Les anomalies qui ne concernent aucun PDF particulier (template, `NO_PDF_FOUND`, `OUTPUT_EXISTS`, erreurs techniques) sont consignées dans la liste `errors` de premier niveau du journal, ajoutée au schéma `1.0` de façon rétrocompatible.
 
 Le catalogue est centralisé dans `errors.py`. Les codes publiés ne doivent pas être renommés sans évolution de version du schéma.
 
@@ -323,13 +354,27 @@ Le catalogue est centralisé dans `errors.py`. Les codes publiés ne doivent pas
 
 ## 12. Installation et déploiement
 
-La solution est distribuée sous forme de paquet Python installable dans un environnement virtuel.
+La solution est distribuée exclusivement sous forme d'**image Docker** à usage interne à l'organisation. Le code reste un paquet Python (`pyproject.toml`), installé dans l'image.
 
 - **TEC-063** — Le projet DOIT comporter `pyproject.toml`.
 - **TEC-064** — Les dépendances directes et transitives DOIVENT être verrouillées.
-- **TEC-065** — Les ressources CSS DOIVENT être livrées avec l'application.
-- **TEC-066** — L'application DOIT pouvoir être exécutée sans accès réseau après installation.
-- **TEC-067** — La procédure d'installation DOIT documenter les bibliothèques système requises par WeasyPrint.
+- **TEC-065** — Les ressources CSS et les polices DOIVENT être livrées avec l'application.
+- **TEC-066** — L'application DOIT pouvoir être exécutée sans accès réseau après construction de l'image.
+- **TEC-067** — Les bibliothèques système requises par WeasyPrint DOIVENT être installées dans l'image et listées dans le `Dockerfile` et le `README.md`.
+
+### 12.0 Distribution par Docker
+
+- **TEC-108** — Le dépôt DOIT comporter un `Dockerfile` construisant une image à partir d'une image de base Debian 13 (par exemple `python:3.13-slim-trixie`), dont la version est figée. Les paquets Python sont installés depuis `requirements.lock` (TEC-064), les paquets système depuis les dépôts Debian.
+- **TEC-109** — L'image DOIT définir `ack-doc` comme `ENTRYPOINT`, de sorte que `docker run … <image> --input … --output …` utilise les mêmes arguments que la commande `ack-doc`.
+- **TEC-110** — La construction DOIT être la seule étape nécessitant un accès réseau. L'exécution DOIT fonctionner avec `--network none`.
+- **TEC-111** — Le conteneur NE DOIT PAS s'exécuter en root par défaut : l'image définit un utilisateur non privilégié, et le script d'enveloppe passe `--user` avec l'UID et le GID de l'appelant afin que les fichiers produits appartiennent à l'utilisateur.
+- **TEC-112** — Les entrées, le template et les sorties DOIVENT se trouver sous un même point de montage (`/work`, répertoire de travail du conteneur). Les chemins relatifs sont donc résolus depuis `/work` (TEC-091), et les liens du Markdown vers les PDF source restent valides sur l'hôte (TEC-092). Les chemins hors de `/work` sont refusés par le script d'enveloppe.
+- **TEC-113** — Le code de sortie du conteneur DOIT être celui de `ack-doc` (`0`, `1` ou `2`) ; le script d'enveloppe le renvoie sans le modifier. Un échec de Docker lui-même (démon absent, image introuvable) DOIT être signalé distinctement, avec le code `2`.
+- **TEC-114** — Un script `ack-doc.sh` DOIT être fourni. Il vérifie la présence de Docker, monte le répertoire courant sur `/work`, lance l'image avec `--rm`, `--network none` et `--user`, puis transmet les arguments.
+- **TEC-115** — L'image DOIT fonctionner avec un système de fichiers racine en lecture seule (`--read-only`) : les caches (fontconfig, `XDG_CACHE_HOME`) et les fichiers temporaires sont dirigés vers `/tmp` (`--tmpfs /tmp`). Les fichiers temporaires de publication (TEC-060 à TEC-062) sont créés dans le répertoire de sortie.
+- **TEC-116** — L'image DOIT porter une étiquette de version (tag) correspondant à celle du paquet, et ne DOIT pas être publiée hors de l'organisation (registre interne ou export par `docker save`).
+- **TEC-117** — Un test d'intégration DOIT lancer l'image construite sur le corpus de non-régression, avec `--network none` et `--read-only`, et vérifier les codes retour, la propriété des fichiers produits et les polices du PDF (TEC-107).
+- **TEC-118** — Les licences des composants (dont PyMuPDF) ne constituent pas une contrainte pour cette distribution interne. Toute diffusion de l'image hors de l'organisation DOIT faire l'objet d'une nouvelle analyse de licence préalable.
 
 ### 12.1 Arborescence du projet
 
@@ -338,6 +383,8 @@ ACK-DOC/
 ├── pyproject.toml
 ├── README.md
 ├── requirements.lock
+├── Dockerfile
+├── ack-doc.sh
 ├── src/
 │   └── ack_doc/
 │       ├── __init__.py
@@ -354,7 +401,16 @@ ACK-DOC/
 │       ├── journal.py
 │       ├── errors.py
 │       └── resources/
-│           └── pdf.css
+│           ├── pdf.css
+│           ├── fonts.conf
+│           └── fonts/
+│               ├── OFL.txt
+│               ├── NotoSans-Regular.ttf
+│               ├── NotoSans-Italic.ttf
+│               ├── NotoSans-Bold.ttf
+│               ├── NotoSans-BoldItalic.ttf
+│               ├── NotoSansMono-Regular.ttf
+│               └── NotoSansMono-Bold.ttf
 ├── tests/
 │   ├── unit/
 │   ├── integration/
@@ -365,7 +421,7 @@ ACK-DOC/
     └── specification_technique.md
 ```
 
-Le point d'entrée expose la commande `ack-doc`.
+Le point d'entrée expose la commande `ack-doc`, exécutée dans l'image Docker (TEC-109) ; `ack-doc.sh` est le lanceur côté hôte (TEC-114).
 
 ## 13. Stratégie de tests
 

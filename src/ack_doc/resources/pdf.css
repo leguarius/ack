@@ -1,0 +1,211 @@
+/*
+ * ACK-DOC — feuille de style du PDF final (resources/pdf.css)
+ *
+ * Contraintes (spécification technique §8, TEC-073, TEC-086, TEC-087) :
+ *  - aucune ressource réseau ni @import ;
+ *  - seules les polices livrées dans resources/fonts/ sont référencées ;
+ *  - aucune police système n'est déclarée.
+ *
+ * Structure HTML attendue pour chaque document inséré :
+ *   <section class="ack-entry">
+ *     <div class="ack-summary">résumé (échappé, sauts de ligne conservés)</div>
+ *     <div class="ack-link-bubble"><p><a href="...">Document source</a></p></div>
+ *   </section>
+ */
+
+/* ---------- Polices embarquées (Noto Sans, licence SIL OFL 1.1) ---------- */
+
+@font-face {
+    font-family: "ACK Sans";
+    src: url("fonts/NotoSans-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "ACK Sans";
+    src: url("fonts/NotoSans-Italic.ttf") format("truetype");
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "ACK Sans";
+    src: url("fonts/NotoSans-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "ACK Sans";
+    src: url("fonts/NotoSans-BoldItalic.ttf") format("truetype");
+    font-weight: 700;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "ACK Mono";
+    src: url("fonts/NotoSansMono-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "ACK Mono";
+    src: url("fonts/NotoSansMono-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+}
+
+/* ---------- Page ---------- */
+
+@page {
+    size: A4;
+    margin: 2cm;
+
+    @bottom-center {
+        content: counter(page) " / " counter(pages);
+        font-family: "ACK Sans";
+        font-size: 9pt;
+        color: #5A6B7B;
+    }
+}
+
+/* ---------- Base ---------- */
+
+html {
+    hyphens: manual;
+}
+
+body {
+    font-family: "ACK Sans";
+    font-size: 11pt;
+    line-height: 1.45;
+    color: #1E2A36;
+    orphans: 3;
+    widows: 3;
+}
+
+/* ---------- Titres ---------- */
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: "ACK Sans";
+    font-weight: 700;
+    line-height: 1.25;
+    color: #1E2A36;
+    break-after: avoid;
+    break-inside: avoid;
+}
+
+h1 { font-size: 20pt; margin: 0 0 12pt; }
+h2 { font-size: 16pt; margin: 18pt 0 8pt; }
+h3 { font-size: 13pt; margin: 14pt 0 6pt; }
+h4, h5, h6 { font-size: 11pt; margin: 12pt 0 4pt; }
+
+p {
+    margin: 0 0 8pt;
+}
+
+/* ---------- Listes ---------- */
+
+ul, ol {
+    margin: 0 0 8pt;
+    padding-left: 1.2cm;
+}
+
+li {
+    margin: 0 0 3pt;
+}
+
+/* ---------- Liens ---------- */
+
+a {
+    color: #405D78;
+    text-decoration: underline;
+    overflow-wrap: anywhere;
+}
+
+/* ---------- Citations, code, filets ---------- */
+
+blockquote {
+    margin: 8pt 0;
+    padding: 4pt 12pt;
+    border-left: 3pt solid #9BAFC1;
+    color: #405D78;
+    break-inside: avoid;
+}
+
+code, pre {
+    font-family: "ACK Mono";
+    font-size: 9.5pt;
+}
+
+pre {
+    margin: 8pt 0;
+    padding: 8pt;
+    background-color: #F0F3F6;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    break-inside: avoid;
+}
+
+hr {
+    border: 0;
+    border-top: 0.75pt solid #9BAFC1;
+    margin: 14pt 0;
+}
+
+/* ---------- Tableaux ---------- */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8pt 0;
+}
+
+th, td {
+    border: 0.5pt solid #9BAFC1;
+    padding: 4pt 6pt;
+    text-align: left;
+    vertical-align: top;
+}
+
+th {
+    background-color: #F0F3F6;
+    font-weight: 700;
+}
+
+thead {
+    display: table-header-group;
+}
+
+tr {
+    break-inside: avoid;
+}
+
+/* ---------- Documents insérés ---------- */
+
+.ack-entry {
+    margin: 0 0 14pt;
+}
+
+/* Les sauts de ligne du résumé sont rendus en <br> par le moteur (option « breaks »). */
+.ack-summary {
+    overflow-wrap: anywhere;
+}
+
+.ack-link-bubble {
+    background-color: #F0F3F6;
+    border: 0.75pt solid #9BAFC1;
+    border-radius: 16pt;
+    padding: 6pt 14pt;
+    margin: 8pt 0 0;
+    color: #405D78;
+    font-size: 10.5pt;
+    line-height: 1.5;
+    break-inside: avoid;
+}
+
+.ack-link-bubble p {
+    margin: 0;
+}
