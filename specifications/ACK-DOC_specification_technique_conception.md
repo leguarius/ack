@@ -206,7 +206,21 @@ Chaîne retenue : **Markdown → markdown-it-py → HTML + CSS → WeasyPrint �
 </section>
 ```
 
-  Cette structure est provisoire : elle sera alignée sur `page_setting_template.html` (modèle de mise en page, non finalisé) quand celui-ci sera terminé. Les classes `ack-entry`, `ack-summary` et `ack-link-bubble` sont le contrat entre le HTML et `pdf.css`.
+  Cette structure est provisoire : elle sera alignée sur `page_setting_template.html` (modèle de mise en page, non finalisé) quand celui-ci sera terminé. Les classes `ack-entry`, `ack-summary`, `ack-link-bubble`, `ack-intro` et `ack-intro-text` sont le contrat entre le HTML et `pdf.css`.
+- **TEC-108** — Le propos introductif d'une section est rédigé dans le template Markdown, entre deux lignes de marqueurs `<!-- ack:intro:start -->` et `<!-- ack:intro:end -->`, chacune seule sur sa ligne. Le texte compris entre les marqueurs est du Markdown ordinaire. Le renderer le convertit en `<section class="ack-intro"><div class="ack-intro-text">…</div></section>`. Les marqueurs ne peuvent être ni imbriqués ni non fermés : toute anomalie produit `INVALID_TEMPLATE` (code `1`). Ils ne sont reconnus que dans le template ; le contenu des résumés étant échappé (TEC-084), il ne peut pas en produire.
+- **TEC-109** — Dans `pdf.css`, le propos introductif est en gris clair (`#6B7785`) sans retrait ; le résumé (`.ack-summary`) est en retrait (0,8 cm), en gris soutenu (`#1E2A36`) avec un filet vertical à gauche.
+
+Exemple de section de template :
+
+```markdown
+## Dossier technique
+
+<!-- ack:intro:start -->
+Propos introductif de la section.
+<!-- ack:intro:end -->
+
+[[ANACK]]ACK0130[[/ANACK]]
+```
 - **TEC-099** — Les dimensions dans `pdf.css` DOIVENT être exprimées en unités d'impression (`pt`, `cm`), non en `px`.
 - **TEC-100** — Chaque page DOIT porter en bas une numérotation « page / total » produite par `@page` (`counter(page)`, `counter(pages)`).
 - **TEC-101** — Les `@font-face` DOIVENT déclarer les familles `ACK Sans` (Noto Sans : Regular, Italic, Bold, BoldItalic) et `ACK Mono` (Noto Sans Mono : Regular, Bold), à partir de fichiers **statiques** (TTF) situés dans `src/ack_doc/resources/fonts/`, chemins relatifs à `pdf.css`. Les polices variables sont exclues.
@@ -233,6 +247,14 @@ body {
 
 .ack-summary {
     overflow-wrap: anywhere;
+    margin-left: 0.8cm;
+    padding-left: 8pt;
+    border-left: 2pt solid #9BAFC1;
+    color: #1E2A36;
+}
+
+.ack-intro-text {
+    color: #6B7785;
 }
 ```
 

@@ -233,6 +233,18 @@ Le modèle doit être un fichier non vide encodé en UTF-8 valide. Il est contr�
 Une non-conformité du contenu du modèle (modèle vide ou balisage/clé invalide) entraîne le code retour 1 et est consignée sous le code `INVALID_TEMPLATE` ou `DUPLICATE_TEMPLATE_ANACK`. Une erreur d'accès au fichier ou un encodage UTF-8 invalide entraîne le code retour 2. La validation d'un modèle invalide n'est pas poursuivie.
 À la composition, le marqueur ANACK et sa clé sont remplacés par les résumés et liens correspondants. Si aucun document ne correspond à la clé, le marqueur est retiré et l'emplacement reste vide.
 
+### 10.4 Propos introductif de section
+
+Le modèle peut comporter, sous un titre de section, un propos introductif rédigé directement dans le modèle. Il est délimité par deux lignes de marqueurs, chacune seule sur sa ligne :
+
+```markdown
+<!-- ack:intro:start -->
+Propos introductif de la section.
+<!-- ack:intro:end -->
+```
+
+Le propos introductif est facultatif et distinct du résumé (EXSUM) des documents. Son texte est du Markdown ordinaire. Dans le PDF final, il est présenté en gris clair, sans retrait, tandis que chaque résumé est en retrait, en gris plus soutenu et précédé d'un filet vertical, afin de le faire ressortir. Ces marqueurs ne sont reconnus que dans le modèle ; ils ne peuvent pas être produits par le contenu d'un résumé. Des marqueurs imbriqués, non fermés ou non appariés rendent le modèle invalide (`INVALID_TEMPLATE`, code retour 1).
+
 ## 11. Correspondance entre le modèle et les documents
 
 Pour chaque document source, la valeur de ANACK est comparée aux clés ANACK présentes dans le modèle.
@@ -505,6 +517,9 @@ Les cas suivants constituent le socle minimal des tests fonctionnels.
 | T081 | Template | Encodage invalide | Séquence UTF-8 invalide | Erreur technique, code 2 | Oui |
 | T082 | Template | Lecture impossible | Fichier modèle inaccessible | Erreur technique, code 2 | Oui |
 | T083 | EXSUM | Espace Unicode | Résumé contenant un NBSP périphérique | `INVALID_EXSUM`, code 1; aucune normalisation Unicode | Oui |
+| T084 | Template | Propos introductif valide | Texte entre `<!-- ack:intro:start -->` et `<!-- ack:intro:end -->` | Modèle valide; propos rendu en gris clair, sans retrait, distinct des résumés | Non |
+| T085 | Template | Propos introductif mal apparié | Marqueur `intro` non fermé, imbriqué ou fermant seul | `INVALID_TEMPLATE`, code 1 | Oui |
+| T086 | EXSUM | Marqueur d'introduction dans un résumé | Résumé contenant `<!-- ack:intro:start -->` | Rendu en texte littéral, aucun propos introductif créé | Non |
 
 ## 21. Critères globaux d'acceptation
 

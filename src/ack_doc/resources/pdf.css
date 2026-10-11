@@ -11,6 +11,9 @@
  *     <div class="ack-summary">résumé (échappé, sauts de ligne conservés)</div>
  *     <div class="ack-link-bubble"><p><a href="...">Document source</a></p></div>
  *   </section>
+ *
+ * Propos introductif d'une section (placé sous le titre H2) :
+ *   <section class="ack-intro"><div class="ack-intro-text">texte</div></section>
  */
 
 /* ---------- Polices embarquées (Noto Sans, licence SIL OFL 1.1) ---------- */
@@ -191,6 +194,20 @@ tr {
 
 /* Les sauts de ligne du résumé sont rendus en <br> par le moteur (option « breaks »). */
 .ack-summary {
+    overflow-wrap: anywhere;
+    margin-left: 0.8cm;
+    padding-left: 8pt;
+    border-left: 2pt solid #9BAFC1;
+    color: #1E2A36;
+}
+
+/* Propos introductif de section : gris plus clair que le résumé, sans retrait. */
+.ack-intro {
+    margin: 0 0 12pt;
+}
+
+.ack-intro-text {
+    color: #6B7785;
     overflow-wrap: anywhere;
 }
 

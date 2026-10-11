@@ -11,6 +11,7 @@ from ack_doc.models import ValidationIssue
 from ack_doc.tag_parser import UNKNOWN_TAG, normalize_value, parse_tags
 
 _KEY_RE = re.compile(r"ACK[0-9]{4}")
+_INTRO_RE = re.compile(r"^<!-- ack:intro:(start|end) -->[ \t]*$")
 
 
 @dataclass(frozen=True)
@@ -68,6 +69,18 @@ def validate_template(text: str, file_label: str | None = None) -> TemplateInfo:
     if not text.strip(" \t\n\r"):
         issue("Le modèle est vide", tag=None)
         return info
+
+    depth = 0
+    for line in text.split("\n"):
+        marker = _INTRO_RE.match(line)
+        if not marker:
+            continue
+        depth += 1 if marker.group(1) == "start" else -1
+        if depth not in (0, 1):
+            issue("Marqueurs de propos introductif imbriqués ou non appariés", tag="ack:intro")
+            depth = 0
+    if depth:
+        issue("Propos introductif non fermé dans le modèle", tag="ack:intro")
 
     parsed = parse_tags([text], allow_unknown=True)
     for anomaly in parsed.anomalies:

@@ -54,3 +54,25 @@ def test_template_rules():
     dup = validate_template("[[ANACK]]ACK0001[[/ANACK]] [[ANACK]]ACK0001[[/ANACK]]")
     assert any(i.code == "DUPLICATE_TEMPLATE_ANACK" for i in dup.issues)
     assert validate_template("[[ANACK]]ACK0001").issues
+
+
+def test_intro_markers_in_template_and_html():
+    from ack_doc.renderer import markdown_to_html
+
+    text = (
+        "## S\n\n<!-- ack:intro:start -->\nIntro *x*\n<!-- ack:intro:end -->\n\n"
+        "[[ANACK]]ACK0001[[/ANACK]]\n"
+    )
+    assert validate_template(text).is_valid
+    html = markdown_to_html(text)
+    assert '<section class="ack-intro"><div class="ack-intro-text">' in html
+    assert "<em>x</em>" in html and "</div></section>" in html
+
+
+def test_intro_markers_unbalanced_rejected():
+    for text in (
+        "<!-- ack:intro:start -->\nx\n[[ANACK]]ACK0001[[/ANACK]]\n",
+        "<!-- ack:intro:start -->\n<!-- ack:intro:start -->\n<!-- ack:intro:end -->\n",
+        "<!-- ack:intro:end -->\n[[ANACK]]ACK0001[[/ANACK]]\n",
+    ):
+        assert not validate_template(text).is_valid

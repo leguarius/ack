@@ -14,13 +14,19 @@ from ack_doc import errors
 RESOURCES = Path(__file__).resolve().parent / "resources"
 CSS_PATH = RESOURCES / "pdf.css"
 
-_MARKER_RE = re.compile(r"^<!-- ack:(entry|summary|link):(start|end) -->[ \t]*$")
+_MARKER_RE = re.compile(r"^<!-- ack:(entry|summary|link|intro):(start|end) -->[ \t]*$")
 _OPEN_HTML = {
     "entry": '<section class="ack-entry">\n',
     "summary": '<div class="ack-summary">',
     "link": '<div class="ack-link-bubble">',
+    "intro": '<section class="ack-intro"><div class="ack-intro-text">',
 }
-_CLOSE_HTML = {"entry": "</section>\n", "summary": "</div>\n", "link": "</div>\n"}
+_CLOSE_HTML = {
+    "entry": "</section>\n",
+    "summary": "</div>\n",
+    "link": "</div>\n",
+    "intro": "</div></section>\n",
+}
 
 
 def _ack_marker(state, start_line: int, end_line: int, silent: bool) -> bool:
